@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hub de Precificação Multicanal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+    :root {
+        --bg-color: #f5f5f7;
+        --card-bg: #ffffff;
+        --card-border: rgba(0, 0, 0, 0.05);
+        --text-main: #1d1d1f;
+        --text-muted: #86868b;
+        --accent: #0071e3;
+        --accent-hover: #0077ed;
+        --danger: #ff3b30;
+        --success: #34c759;
+        --warning: #ff9500;
+        --radius-lg: 16px;
+        --radius-md: 10px;
+        --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.02);
+        --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        -webkit-font-smoothing: antialiased;
+        padding: 2.5rem 1rem;
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 1060px;
+        margin: 0 auto;
+    }
+
+    /* Cabeçalho Minimalista */
+    .header-nav {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .header-nav h1 {
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.6px;
+        color: var(--text-main);
+        margin-bottom: 6px;
+    }
+
+    .header-nav p {
+        color: var(--text-muted);
+        font-size: 15px;
+        font-weight: 400;
+    }
+
+    .grid-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 992px) {
+        .grid-layout { grid-template-columns: 1.2fr 0.8fr; }
+    }
+
+    /* Cards Estilo Apple White */
+    .glass-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        padding: 1.75rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.25rem;
+        transition: box-shadow 0.25s ease;
+    }
+
+    .glass-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: -0.1px;
+        color: var(--text-main);
+        border-bottom: 1px solid rgba(0,0,0,0.03);
+        padding-bottom: 10px;
+    }
+
+    .section-title i {
+        color: var(--accent);
+        font-size: 16px;
+    }
+
+    /* Grelha de Canais (Apple Grid) */
+    .channel-container-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .channel-container-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .channel-box {
+        background: #fbfbfd;
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-md);
+        padding: 14px 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+    }
+
+    .channel-box:hover {
+        background: #f5f5f7;
+        border-color: rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .channel-box.active {
+        background: #ffffff;
+        border-color: var(--accent);
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.05);
+    }
+
+    .channel-box::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: transparent;
+        transition: background 0.2s;
+    }
+
+    .channel-box.active::after {
+        background: var(--accent);
+    }
+
+    /* Custom Logos dos Canais */
+    .channel-logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 11px;
+        background: #f5f5f7;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .logo-tiktok { background: #000000; color: #fff; }
+    .logo-ml { background: #ffe600; color: #2d3277; }
+    .logo-shopee { background: #ee4d2d; color: #fff; }
+    .logo-amazon { background: #232f3e; color: #ff9900; }
+    .logo-magalu { background: #0086ff; color: #fff; }
+    .logo-shein { background: #000000; color: #fff; }
+    .logo-dafiti { background: #1a1a1a; color: #fff; }
+    .logo-privalia { background: #e31837; color: #fff; }
+
+    .channel-name {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    /* Formulários e Inputs */
+    .input-row-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 576px) {
+        .input-row-grid { grid-template-columns: 1fr; }
+    }
+
+    .input-group label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-field-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .currency-symbol {
+        position: absolute;
+        left: 14px;
+        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 500;
+        pointer-events: none;
+    }
+
+    input[type="number"] {
+        width: 100%;
+        padding: 12px 12px 12px 38px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        font-size: 14px;
+        color: var(--text-main);
+        font-family: inherit;
+        transition: all 0.2s ease;
+    }
+
+    input[type="number"]:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.08);
+    }
+
+    .dynamic-row {
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .dynamic-row:last-child { border-bottom: none; padding-bottom: 0; }
+    
+    .dynamic-row.flex-align {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .dynamic-meta h4 {
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-main);
+    }
+
+    .dynamic-meta p {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 3px;
+        line-height: 1.4;
+    }
+
+    .badge-responsibility {
+        font-size: 8px;
+        font-weight: 700;
+        padding: 2px 5px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .badge-seller { background: rgba(255, 59, 48, 0.08); color: var(--danger); }
+
+    /* Switch iOS Clean */
+    .ios-switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 26px;
+        flex-shrink: 0;
+    }
+    .ios-switch input { opacity: 0; width: 0; height: 0; }
+
+    .ios-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #e9e9eb;
+        transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 34px;
+    }
+    .ios-slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    input:checked + .ios-slider { background-color: var(--success); }
+    input:checked + .ios-slider:before { transform: translateX(20px); }
+
+    /* Slider de Range */
+    .range-box {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .range-slider-input {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+        padding: 0;
+    }
+    .range-slider-input:focus { outline: none; }
+    .range-slider-input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        cursor: pointer;
+        margin-top: -8px;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .range-slider-input::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 4px;
+        background: #e9e9eb;
+        border-radius: 2px;
+    }
+
+    .range-display-badge {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent);
+        width: 40px;
+        text-align: right;
+    }
+
+    /* Banners Educativos */
+    .edu-banner {
+        background: #fbfbfd;
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        padding: 12px;
+        border-radius: var(--radius-md);
+        font-size: 12px;
+        line-height: 1.5;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    .edu-banner i {
+        font-size: 16px;
+        flex-shrink: 0;
+        color: var(--accent);
+    }
+
+    /* Relatório de Resultados */
+    .preview-results-card {
+        background: #ffffff;
+        color: var(--text-main);
+        border: 1px solid var(--card-border);
+        position: sticky;
+        top: 2rem;
+    }
+
+    .results-header-block {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+        padding-bottom: 12px;
+    }
+
+    .calculation-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.03);
+        font-size: 13px;
+    }
+    .calculation-row:last-of-type { border-bottom: none; }
+    .calculation-label { color: var(--text-muted); }
+    .calculation-value { font-weight: 500; }
+    
+    .text-red { color: var(--danger); }
+    .text-green { color: var(--success); }
+
+    /* Box de Margem e Lucro */
+    .summary-profit-box {
+        background: #fbfbfd;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        text-align: center;
+        margin-top: 1.25rem;
+        border: 1px solid rgba(0,0,0,0.04);
+        transition: all 0.25s ease;
+    }
+    .summary-profit-box .label-text {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+    .summary-profit-box .amount-display {
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -0.8px;
+        margin-bottom: 4px;
+        transition: color 0.25s;
+    }
+    .summary-profit-box .margin-display {
+        font-size: 14px;
+        font-weight: 500;
+        transition: color 0.25s;
+    }
+
+    /* Simulador Reverso */
+    .target-box-wrapper {
+        border-top: 1px solid rgba(0,0,0,0.05);
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+    }
+    .target-box-title {
+        font-size: 10px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    .target-button-grid {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+    .target-trigger {
+        flex: 1;
+        background: #f5f5f7;
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        border-radius: 6px;
+        padding: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .target-trigger.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
+    }
+    .suggestion-info {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+    .suggestion-info span {
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    .marketplace-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        background: #f5f5f7;
+        color: var(--text-main);
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-nav">
+        <h1>Hub de Precificação Multicanal</h1>
+        <p>Garantia de margem líquida limpa para seus produtos · 2026</p>
+    </div>
+
+    <!-- Canal ativo escondido para a lógica JS -->
+    <input type="hidden" id="marketplace" value="tiktok">
+
+    <div class="grid-layout">
+        <div class="settings-col">
+            <!-- Bloco de Seleção de Canal -->
+            <div class="glass-card">
+                <div class="section-title"><i class="ti ti-building-store"></i> Selecione o Canal de Venda</div>
+                
+                <div class="channel-container-grid">
+                    <div class="channel-box active" id="btn-tiktok" onclick="selectMarketplace('tiktok')">
+                        <div class="channel-logo logo-tiktok"><i class="ti ti-brand-tiktok"></i></div>
+                        <div class="channel-name">TikTok Shop</div>
+                    </div>
+                    <div class="channel-box" id="btn-ml" onclick="selectMarketplace('ml')">
+                        <div class="channel-logo logo-ml">ML</div>
+                        <div class="channel-name">Mercado Livre</div>
+                    </div>
+                    <div class="channel-box" id="btn-shopee" onclick="selectMarketplace('shopee')">
+                        <div class="channel-logo logo-shopee">SH</div>
+                        <div class="channel-name">Shopee</div>
+                    </div>
+                    <div class="channel-box" id="btn-amazon" onclick="selectMarketplace('amazon')">
+                        <div class="channel-logo logo-amazon">AM</div>
+                        <div class="channel-name">Amazon</div>
+                    </div>
+                    <div class="channel-box" id="btn-magalu" onclick="selectMarketplace('magalu')">
+                        <div class="channel-logo logo-magalu">MG</div>
+                        <div class="channel-name">Magalu</div>
+                    </div>
+                    <div class="channel-box" id="btn-shein" onclick="selectMarketplace('shein')">
+                        <div class="channel-logo logo-shein">SH</div>
+                        <div class="channel-name">Shein</div>
+                    </div>
+                    <div class="channel-box" id="btn-dafiti" onclick="selectMarketplace('dafiti')">
+                        <div class="channel-logo logo-dafiti">DF</div>
+                        <div class="channel-name">Dafiti</div>
+                    </div>
+                    <div class="channel-box" id="btn-privalia" onclick="selectMarketplace('privalia')">
+                        <div class="channel-logo logo-privalia">PV</div>
+                        <div class="channel-name">Privalia</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inputs de Precificação -->
+            <div class="glass-card">
+                <div class="section-title"><i class="ti ti-box"></i> Estrutura de Custos</div>
+                
+                <div class="input-row-grid">
+                    <div class="input-group">
+                        <label>Preço de Venda Final</label>
+                        <div class="input-field-wrapper">
+                            <span class="currency-symbol">R$</span>
+                            <input type="number" id="price" value="180.00" step="0.01" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Preço de Atacado (Custo)</label>
+                        <div class="input-field-wrapper">
+                            <span class="currency-symbol">R$</span>
+                            <input type="number" id="cost" value="65.00" step="0.01" oninput="calculate()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-row-grid">
+                    <div class="input-group">
+                        <label>Custo de Envio (Frete Seller)</label>
+                        <div class="input-field-wrapper">
+                            <span class="currency-symbol">R$</span>
+                            <input type="number" id="shipping" value="0.00" step="0.01" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Embalagem e Impostos</label>
+                        <div class="input-field-wrapper">
+                            <span class="currency-symbol">R$</span>
+                            <input type="number" id="packaging" value="8.50" step="0.01" oninput="calculate()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regras de Marketing Dinâmicas -->
+            <div class="glass-card">
+                <div class="section-title"><i class="ti ti-adjustments-horizontal"></i> Marketing & Configurações da Plataforma</div>
+                <div id="dynamic-info-banner"></div>
+                <div id="dynamic-toggles">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="results-col">
+            <div class="glass-card preview-results-card">
+                <div class="results-header-block">
+                    <div class="section-title" style="margin: 0; border: none; padding: 0;"><i class="ti ti-receipt-2"></i> Relatório de Repasse</div>
+                    <span id="badge-display" class="marketplace-badge">TikTok Shop</span>
+                </div>
+
+                <div class="calculation-row">
+                    <span class="calculation-label">Preço de Venda (Retalho)</span>
+                    <span class="calculation-value" id="res-price">R$ 0,00</span>
+                </div>
+                
+                <div id="dynamic-fees-container"></div>
+
+                <div class="calculation-row" style="margin-top: 8px; border-top: 1px dashed rgba(0,0,0,0.08);">
+                    <span class="calculation-label">Custo do Produto (Atacado)</span>
+                    <span class="calculation-value text-red" id="res-costs">-R$ 0,00</span>
+                </div>
+                <div class="calculation-row">
+                    <span class="calculation-label">Envio (Frete Seller)</span>
+                    <span class="calculation-value text-red" id="res-shipping">-R$ 0,00</span>
+                </div>
+
+                <div class="summary-profit-box" id="profit-box">
+                    <div class="label-text">Lucro Líquido Real</div>
+                    <div class="amount-display" id="res-profit">R$ 0,00</div>
+                    <div class="margin-display" id="res-margin">Margem: 0%</div>
+                </div>
+
+                <!-- Simulador de Margem Reverso -->
+                <div class="target-box-wrapper">
+                    <div class="target-box-title">Simulador de Margem Alvo</div>
+                    <div class="target-button-grid">
+                        <button class="target-trigger" onclick="setTargetMargin(10)">10%</button>
+                        <button class="target-trigger active" onclick="setTargetMargin(20)">20%</button>
+                        <button class="target-trigger" onclick="setTargetMargin(30)">30%</button>
+                    </div>
+                    <div class="suggestion-info">
+                        Para atingir esta meta de margem, deve vender por: <br><span id="res-suggested">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const marketRules = {
+        tiktok: {
+            name: "TikTok Shop",
+            badgeClass: "badge-tiktok",
+            infoText: "<b>TikTok Shop 2026:</b> O programa de frete (6%) e as comissões de afiliados são descontados do repasse direto do <b>Seller (Você)</b>.",
+            options: [
+                { id: "tk_novo", type: "checkbox", label: "Conta Nova (Isento)", sub: "Até 60 dias sem taxa base de comissão", default: false, payer: "seller" },
+                { id: "tk_frete", type: "checkbox", label: "Programa de Envio (6%)", sub: "Adiciona 6% de taxa para cobrir frete grátis (máx R$50)", default: true, payer: "seller" },
+                { id: "tk_afil", type: "range", label: "Comissão de Afiliados (%)", sub: "Percentagem que você escolhe repassar ao criador de conteúdo", default: 10, min: 0, max: 30, payer: "seller" }
+            ],
+            calc: (price, opts) => {
+                let fees = [];
+                if (!opts.tk_novo) {
+                    if (price < 50) {
+                        fees.push({ label: "Comissão Base (10% - Itens < R$50)", value: price * 0.10 });
+                    } else {
+                        fees.push({ label: "Comissão Base (6% - Itens ≥ R$50)", value: price * 0.06 });
+                        fees.push({ label: "Taxa Fixa TikTok", value: 4.00 });
+                    }
+                } else {
+                    fees.push({ label: "Comissão Base (Isento)", value: 0, isNeutral: true });
+                }
+
+                if (opts.tk_frete) {
+                    let shipFee = price * 0.06;
+                    if (shipFee > 50) shipFee = 50;
+                    fees.push({ label: "Programa de Envio (6%)", value: shipFee });
+                }
+
+                if (opts.tk_afil > 0) {
+                    fees.push({ label: `Afiliados (Você paga: ${opts.tk_afil}%)`, value: price * (opts.tk_afil / 100) });
+                }
+                return fees;
+            }
+        },
+        ml: {
+            name: "Mercado Livre",
+            badgeClass: "badge-ml",
+            options: [
+                { id: "ml_premium", type: "checkbox", label: "Anúncio Premium (~19%)", sub: "Eleva a taxa base de ~14% para ~19% em troca de parcelamento", default: false, payer: "seller" },
+                { id: "ml_full", type: "checkbox", label: "Mercado Envios Full", sub: "Ative se o produto está no centro de distribuição do Full", default: false, payer: "seller" },
+                { id: "ml_full_shipping", type: "number", label: "Custo de Envio do Full (R$)", sub: "Tarifa subsidiada cobrada no modelo Full pelo Mercado Livre", default: 19.90, payer: "seller" }
+            ],
+            calc: (price, opts) => {
+                let fees = [];
+                let rate = opts.ml_premium ? 0.19 : 0.14;
+                fees.push({ label: `Comissão ML (${(rate * 100).toFixed(0)}%)`, value: price * rate });
+                if (price < 79) {
+                    fees.push({ label: "Taxa Fixa (Itens < R$79)", value: 5.50 });
+                }
+                if (opts.ml_full && opts.ml_full_shipping > 0) {
+                    fees.push({ label: "Custo Envio do Full", value: opts.ml_full_shipping });
+                }
+                return fees;
+            }
+        },
+        shopee: {
+            name: "Shopee",
+            badgeClass: "badge-shopee",
+            options: [
+                { id: "shp_frete", type: "checkbox", label: "Frete Extra (+6%)", sub: "Adiciona 6% de coparticipação (Limite de R$100 por item)", default: true, payer: "seller" }
+            ],
+            calc: (price, opts) => {
+                let fees = [];
+                const rate = opts.shp_frete ? 0.20 : 0.14;
+                let feeVal = price * rate;
+                if (feeVal > 100) feeVal = 100;
+
+                fees.push({ label: `Comissão Shopee (${(rate * 100).toFixed(0)}%)`, value: feeVal });
+                fees.push({ label: "Taxa Fixa por Item", value: 4.00 });
+                return fees;
+            }
+        },
+        dafiti: {
+            name: "Dafiti",
+            badgeClass: "badge-dafiti",
+            infoText: "<b>Dafiti Moda:</b> A mensalidade histórica de R$299 foi descontinuada. Cobrança baseada na comissão negociada.",
+            options: [
+                { id: "df_rate", type: "range", label: "Comissão Acordada (%)", sub: "Varia tradicionalmente entre 20% e 30% conforme volume", default: 25, min: 20, max: 30, payer: "seller" },
+                { id: "df_full", type: "checkbox", label: "Dafiti Envios Full (+2.5%)", sub: "Soma 2.5% para armazenamento e envio prioritário", default: false, payer: "seller" }
+            ],
+            calc: (price, opts) => {
+                let fees = [];
+                let baseRate = (opts.df_rate || 25) / 100;
+                if (opts.df_full) baseRate += 0.025;
+                fees.push({ label: `Comissão Dafiti (${(baseRate * 100).toFixed(1)}%)`, value: price * baseRate });
+                return fees;
+            }
+        },
+        privalia: {
+            name: "Privalia",
+            badgeClass: "badge-privalia",
+            infoText: "<b>Privalia Campanha:</b> Modelo outlet fechado por consignação. Requer margens negociadas superiores para viabilidade.",
+            options: [
+                { id: "pv_camp", type: "range", label: "Taxa de Retenção (%)", sub: "Margem de intermediação negociada diretamente com a marca", default: 30, min: 20, max: 40, payer: "seller" }
+            ],
+            calc: (price, opts) => {
+                let fees = [];
+                const rate = (opts.pv_camp || 30) / 100;
+                fees.push({ label: `Retenção Privalia (${(rate * 100).toFixed(0)}%)`, value: price * rate });
+                return fees;
+            }
+        },
+        amazon: {
+            name: "Amazon",
+            badgeClass: "badge-amazon",
+            options: [
+                { id: "amz_individual", type: "checkbox", label: "Plano Unitário", sub: "Sem mensalidade, mas cobra R$ 2,00 por item vendido", default: false, payer: "seller" }
+            ],
+            calc: (price, opts) => {
+                let fees = [];
+                fees.push({ label: "Comissão Base (15%)", value: price * 0.15 });
+                if (opts.amz_individual) {
+                    fees.push({ label: "Custo de Plano Fixo", value: 2.00 });
+                }
+                return fees;
+            }
+        },
+        magalu: {
+            name: "Magalu",
+            badgeClass: "badge-magalu",
+            options: [],
+            calc: (price) => [{ label: "Comissão Magalu (16%)", value: price * 0.16 }]
+        },
+        shein: {
+            name: "Shein",
+            badgeClass: "badge-shein",
+            options: [],
+            calc: (price) => [{ label: "Comissão Shein (16%)", value: price * 0.16 }]
+        }
+    };
+
+    const formatCurrency = (val) => 'R$ ' + Math.max(0, val).toFixed(2).replace('.', ',');
+    let activeTargetMargin = 20;
+
+    function selectMarketplace(id) {
+        document.getElementById('marketplace').value = id;
+        document.querySelectorAll('.channel-box').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`btn-${id}`).classList.add('active');
+
+        updateUI();
+        calculate();
+    }
+
+    function updateUI() {
+        const mkPlace = document.getElementById('marketplace').value;
+        const data = marketRules[mkPlace];
+        
+        const badge = document.getElementById('badge-display');
+        badge.textContent = data.name;
+        badge.className = `marketplace-badge ${data.badgeClass || ''}`;
+
+        const bannerContainer = document.getElementById('dynamic-info-banner');
+        if (data.infoText) {
+            bannerContainer.innerHTML = `
+                <div class="edu-banner">
+                    <i class="ti ti-info-circle"></i>
+                    <span>${data.infoText}</span>
+                </div>
+            `;
+        } else {
+            bannerContainer.innerHTML = '';
+        }
+
+        const togglesContainer = document.getElementById('dynamic-toggles');
+        togglesContainer.innerHTML = '';
+        
+        if (data.options.length === 0) {
+            togglesContainer.innerHTML = '<p style="font-size: 12px; color: var(--text-muted); padding: 8px 0;">Sem opções adicionais para este canal de venda.</p>';
+        } else {
+            data.options.forEach(opt => {
+                let badgeHTML = '';
+                if (opt.payer) {
+                    badgeHTML = opt.payer === 'seller' 
+                        ? `<span class="badge-responsibility badge-seller">Desconto Seller</span>`
+                        : `<span class="badge-responsibility badge-client">Pago Cliente</span>`;
+                }
+
+                if (opt.type === 'checkbox') {
+                    togglesContainer.innerHTML += `
+                        <div class="dynamic-row flex-align" id="row-${opt.id}">
+                            <div class="dynamic-meta">
+                                <h4>${opt.label} ${badgeHTML}</h4>
+                                <p>${opt.sub}</p>
+                            </div>
+                            <label class="ios-switch">
+                                <input type="checkbox" id="${opt.id}" ${opt.default ? 'checked' : ''} onchange="calculate()">
+                                <span class="ios-slider"></span>
+                            </label>
+                        </div>
+                    `;
+                } else if (opt.type === 'range') {
+                    togglesContainer.innerHTML += `
+                        <div class="dynamic-row" id="row-${opt.id}">
+                            <div class="dynamic-meta">
+                                <h4>${opt.label} ${badgeHTML}</h4>
+                                <p>${opt.sub}</p>
+                            </div>
+                            <div class="range-box">
+                                <input type="range" class="range-slider-input" id="${opt.id}" min="${opt.min}" max="${opt.max}" value="${opt.default}" 
+                                    oninput="document.getElementById('${opt.id}_val').textContent = this.value + '%'; calculate()">
+                                <span class="range-display-badge" id="${opt.id}_val">${opt.default}%</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (opt.type === 'number') {
+                    togglesContainer.innerHTML += `
+                        <div class="dynamic-row" id="row-${opt.id}">
+                            <div class="dynamic-meta">
+                                <h4>${opt.label} ${badgeHTML}</h4>
+                                <p>${opt.sub}</p>
+                            </div>
+                            <div class="input-field-wrapper" style="margin-top: 8px;">
+                                <span class="currency-symbol">R$</span>
+                                <input type="number" id="${opt.id}" value="${opt.default}" step="0.01" oninput="calculate()">
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+    }
+
+    function calculate() {
+        const mkPlace = document.getElementById('marketplace').value;
+        const data = marketRules[mkPlace];
+        
+        const price = parseFloat(document.getElementById('price').value) || 0;
+        const cost = parseFloat(document.getElementById('cost').value) || 0;
+        const shipping = parseFloat(document.getElementById('shipping').value) || 0;
+        const packaging = parseFloat(document.getElementById('packaging').value) || 0;
+
+        // Ocultar/Exibir dinamicamente o custo de frete do Full com base no toggle do Full
+        if (mkPlace === 'ml') {
+            const mlFull = document.getElementById('ml_full');
+            const mlFullShippingRow = document.getElementById('row-ml_full_shipping');
+            if (mlFull && mlFullShippingRow) {
+                mlFullShippingRow.style.display = mlFull.checked ? 'block' : 'none';
+            }
+        }
+
+        const optionsState = {};
+        data.options.forEach(opt => {
+            const el = document.getElementById(opt.id);
+            if(el) {
+                if (opt.type === 'checkbox') {
+                    optionsState[opt.id] = el.checked;
+                } else if (opt.type === 'number' || opt.type === 'range') {
+                    optionsState[opt.id] = parseFloat(el.value) || 0;
+                }
+            }
+        });
+
+        const fees = data.calc(price, optionsState);
+
+        document.getElementById('res-price').textContent = formatCurrency(price);
+        
+        const feesContainer = document.getElementById('dynamic-fees-container');
+        feesContainer.innerHTML = '';
+        let totalMarketplaceFees = 0;
+
+        fees.forEach(fee => {
+            totalMarketplaceFees += fee.value;
+            const valClass = fee.isNeutral || fee.value === 0 ? 'calculation-value' : 'calculation-value text-red';
+            const displayVal = fee.value === 0 ? 'R$ 0,00' : `-${formatCurrency(fee.value)}`;
+            
+            feesContainer.innerHTML += `
+                <div class="calculation-row">
+                    <span class="calculation-label">${fee.label}</span>
+                    <span class="${valClass}">${displayVal}</span>
+                </div>
+            `;
+        });
+
+        const totalStandardCosts = cost + packaging;
+        document.getElementById('res-shipping').textContent = shipping === 0 ? 'R$ 0,00' : `-${formatCurrency(shipping)}`;
+        document.getElementById('res-costs').textContent = totalStandardCosts === 0 ? 'R$ 0,00' : `-${formatCurrency(totalStandardCosts)}`;
+
+        const totalDeductions = totalMarketplaceFees + shipping + totalStandardCosts;
+        const profit = price - totalDeductions;
+        const margin = price > 0 ? (profit / price) * 100 : 0;
+
+        const profitEl = document.getElementById('res-profit');
+        profitEl.textContent = profit < 0 ? `-${formatCurrency(Math.abs(profit))}` : formatCurrency(profit);
+        document.getElementById('res-margin').textContent = `Margem Líquida: ${margin.toFixed(1)}%`;
+
+        const profitBox = document.getElementById('profit-box');
+        const profitMarg = document.getElementById('res-margin');
+
+        if (profit > 0) {
+            profitBox.style.background = 'rgba(52, 199, 89, 0.06)';
+            profitBox.style.borderColor = 'rgba(52, 199, 89, 0.12)';
+            profitEl.style.color = '#34c759';
+            profitMarg.style.color = '#34c759';
+        } else if (profit < 0) {
+            profitBox.style.background = 'rgba(255, 59, 48, 0.05)';
+            profitBox.style.borderColor = 'rgba(255, 59, 48, 0.1)';
+            profitEl.style.color = '#ff3b30';
+            profitMarg.style.color = '#ff3b30';
+        } else {
+            profitBox.style.background = '#fbfbfd';
+            profitBox.style.borderColor = 'rgba(0, 0, 0, 0.05)';
+            profitEl.style.color = '#1d1d1f';
+            profitMarg.style.color = '#86868b';
+        }
+
+        calculateTargetPrice(totalStandardCosts + shipping, optionsState, data);
+    }
+
+    function setTargetMargin(percent) {
+        activeTargetMargin = percent;
+        document.querySelectorAll('.target-trigger').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent === `${percent}%`) {
+                btn.classList.add('active');
+            }
+        });
+        calculate();
+    }
+
+    function calculateTargetPrice(fixedCosts, opts, marketConfig) {
+        const targetDecimal = activeTargetMargin / 100;
+        let suggestedPrice = 0;
+
+        for (let testPrice = fixedCosts + 1; testPrice < 10000; testPrice += 0.1) {
+            const calculatedFees = marketConfig.calc(testPrice, opts);
+            let testMarketplaceFees = 0;
+            calculatedFees.forEach(fee => testMarketplaceFees += fee.value);
+            
+            const finalProfit = testPrice - (testMarketplaceFees + fixedCosts);
+            const finalMargin = finalProfit / testPrice;
+
+            if (finalMargin >= targetDecimal) {
+                suggestedPrice = testPrice;
+                break;
+            }
+        }
+
+        document.getElementById('res-suggested').textContent = suggestedPrice > 0 
+            ? formatCurrency(suggestedPrice) 
+            : 'Incalculável com os custos atuais';
+    }
+
+    window.onload = () => {
+        updateUI();
+        calculate();
+    }
+</script>
+</body>
+</html>
